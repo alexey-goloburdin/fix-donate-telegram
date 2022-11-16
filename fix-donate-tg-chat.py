@@ -5,6 +5,7 @@ Can use with @donate subscription channels.
 import logging
 import os
 import time
+import urllib.parse
 
 import httpx
 from telethon.sync import TelegramClient
@@ -25,7 +26,7 @@ try:
     TG_BOT_TOKEN = os.environ["TG_BOT_TOKEN"]
     # Id of your telegram channel. You can see it in web.telegram.org/z/,
     # add -100 to the string start.
-    # For example, id in URL is 123, so write -100123 here
+    # For example, id in URL is 123, so use -100123 here
     TG_CHANNEL_ID = int(os.environ["TG_CHANNEL_ID"])
     logger.debug("Env variables loaded")
     logger.debug(f"Work with channel_id {TG_CHANNEL_ID}")
@@ -36,14 +37,12 @@ except (KeyError, ValueError):
     raise
 
 
-
-def get_tg_url(method: str, **params):
+def get_tg_url(method: str, **params) -> str:
     """Returns URL for Telegram Bot API method `method`
     and optional key=value `params`"""
     url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/{method}"
     if params:
-        params = "&".join([f"{key}={value}" for key, value in params.items()])
-        url += "?" + params
+        url += "?" + urllib.parse.urlencode(params)
     return url
 
 
@@ -60,7 +59,9 @@ def is_user_in_channel(user_id: int, channel_id: int) -> bool:
             chat_id=channel_id, user_id=user_id)
     json_response  = httpx.get(url).json()
     try:
-        return json_response["result"]["status"] == "member"
+        return json_response["result"]["status"] in (
+            "member", "creator", "administrator"
+        )
     except KeyError:
         return False
 
@@ -87,19 +88,19 @@ def get_all_chat_users(chat_id: int) -> list[User]:
     return all_users
 
 
-def ban_user_from_chat(user_id: int, chat_id: int):
+def ban_user_from_chat(user_id: int, chat_id: int) -> None:
     """Ban user `user_id` in chat `chat_id`"""
     url = get_tg_url(method="banChatMember", user_id=user_id, chat_id=chat_id)
     httpx.get(url).json()
 
 
-def unban_user_from_chat(user_id: int, chat_id: int):
+def unban_user_from_chat(user_id: int, chat_id: int) -> None:
     """Unban user `user_id` in chat `chat_id`"""
     url = get_tg_url(method="unbanChatMember", user_id=user_id, chat_id=chat_id)
     httpx.get(url).json()
 
 
-def main():
+def main() -> None:
     TG_CHAT_ID = get_telegram_chat_id_by_channel_id(TG_CHANNEL_ID)
     logger.debug(f"Linked chat id is {TG_CHAT_ID}")
 
@@ -108,21 +109,29 @@ def main():
     logger.debug(f"Users in chat: {users_in_chat_count}")
 
     for index, user in enumerate(users_in_chat):
-        if user.bot: continue  # Skip bots
+        if user.bot:
+            if  user.is_self: 
+                continue
+            logger.warning(
+                f"Some strange bot here, skip it now: @{user.username}")
+            continue
         is_channel_member = is_user_in_channel(user.id, TG_CHANNEL_ID)
         if not is_channel_member:
             logger.info(
                 f"We need to ban+unban user #{user.id}, "
                 f"username {user.username}")
+            # Uncomment it for ban+unban user
             # ban_user_from_chat(user.id, TG_CHAT_ID)
             # unban_user_from_chat(user.id, TG_CHAT_ID)
         time.sleep(0.5)
-        if index % 10 == 0:
+        if index and index % 10 == 0:
             logger.debug(f"Processed {index} of {users_in_chat_count} users")
 
 
 if __name__ == "__main__":
     try:
         main()
+    except (KeyboardInterrupt, SystemExit):
+        logger.info("KeyboardInterrupt or exit(), goodbye!")
     except Exception as e:
         logger.exception("Uncaught exception")

@@ -14,7 +14,7 @@ Than create telegram bot with [@BotFather](https://t.me/BotFather). [Documentati
 
 Then [create Telegram app](https://my.telegram.org/), «API development tools» section. Remember `api_id` and `api_hash`.
 
-Then find out your channel id, remember it. You can see it in URL on Telegram web version, for example, our channel has url `https://web.telegram.org/z/#-1251775798`, so `-1251775798` is our id, but we need add `100` to the start, so we have id: `-1001251775798`.
+Then find out your channel id, remember it. You can see it in URL on Telegram web version, for example, [our channel](https://t.me/t0digital) has url `https://web.telegram.org/z/#-1251775798`, so `-1251775798` is our id, but we need add `100` to the start, so we have id: `-1001251775798`.
 
 Add bot as admin to your channel and his linked chat.
 
@@ -30,6 +30,6 @@ TG_API_ID=... \
     python fix-donate-tg-chat.py
 ```
 
-`TG_API_ID` and `TG_API_HASH` — from [my.telegram.org](https://my.telegram.org). `TG_BOT_TOKEN` from [@BotFather](https://t.me/BotFather). `TG_CHANNEL_ID` is your channel id, `-1001251775798` for our Telegram channel.
+`TG_API_ID` and `TG_API_HASH` — from [my.telegram.org](https://my.telegram.org). `TG_BOT_TOKEN` from [@BotFather](https://t.me/BotFather). `TG_CHANNEL_ID` is your channel id, `-1001251775798` for [our Telegram channel](https://t.me/t0digital).
 
-You can add this script to cron scheduler for everyday run.
+You can add this script to cron scheduler for everyday run. For production usage with real ban+unban users uncomment lines in script in `main` function.
