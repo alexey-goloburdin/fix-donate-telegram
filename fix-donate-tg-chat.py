@@ -19,7 +19,7 @@ logger.setLevel(logging.DEBUG)
 
 
 try:
-    # api_id and api_hash from my.telegram.org, «API development tools» section
+    # api_id and api_hash from my.telegram.org, API development tools section
     TG_API_ID = int(os.environ["TG_API_ID"])
     TG_API_HASH = os.environ["TG_API_HASH"]
     # bot_token from Telegram's @BotFather
@@ -121,8 +121,8 @@ def main() -> None:
                 f"We need to ban+unban user #{user.id}, "
                 f"username {user.username}")
             # Uncomment it for ban+unban user
-            # ban_user_from_chat(user.id, TG_CHAT_ID)
-            # unban_user_from_chat(user.id, TG_CHAT_ID)
+            ban_user_from_chat(user.id, TG_CHAT_ID)
+            unban_user_from_chat(user.id, TG_CHAT_ID)
         time.sleep(0.5)
         if index and index % 10 == 0:
             logger.debug(f"Processed {index} of {users_in_chat_count} users")
